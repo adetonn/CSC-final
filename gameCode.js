@@ -2,9 +2,32 @@ const canvas = document.getElementById('canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-//globals
-var currentScene; 
-//bitmojis
+//globals (general)
+var currentScene = 0;
+var stillPlaying = true; 
+var collision = false;
+
+//movement variables
+var shipRotate = 0;
+var shipSpeed = 0;
+var acceleration = 0.5;
+var rotationAmount = 2;
+var shipX = 100;
+var shipY = 100;
+var keys = [];
+var maxV = 6;
+var shipPosX = 100;
+var shipPosY = 100;
+
+//gun variables
+var shooting = false;
+var shoot = 0;
+var bMoveX = 0;
+var bMoveY = 0;
+var bRotateNum = 0;
+var rotateRefresh = false;
+
+//bitmojis 
 var drawHead = function (bitX, bitY, bitHeight)
 {
     
@@ -163,12 +186,117 @@ line(x+(bitheight/150*12),y+(bitheight/150*113),x+(bitheight/150*32),y+(bitheigh
 line(x+(bitheight/150*11),y+(bitheight/150*81),x+(bitheight/150*32),y+(bitheight/150*80));
 };
 
-//----------------------------------------------------------------------------
-//----------------------------------------------------------------------------
+// 0 = splash , 1 = how-to , 2 = game , 3 = story.1 , 4 = story.2 , 5 = game over.
 
-// 0 = splash , 1 = how-to , 2 = game (?)
+//----------------------------------------------------------------
 
-//scenes
+
+// GAME SCENE CALL
+var drawScene2 = function () {
+    //game scene
+    currentScene = 2; 
+};
+
+//----------------------------------------------------------------
+
+//small button (starts game)
+var smallButton = function(config) {
+    this.x = config.x || 0;
+    this.y = config.y || 0;
+    this.width = config.width || 150;
+    this.height = config.height || 50;
+    this.color = config.currentColor;
+    this.label = config.label || "Click";
+    this.onClick = config.onClick || function() {};
+};
+
+smallButton.prototype.draw = function() {
+    fill(224, 217, 188);
+    rect(this.x, this.y, this.width, this.height, 5);
+    textSize(20);
+    fill(82, 41, 24);
+    textAlign(CENTER, CENTER);
+    text(this.label, this.x+36, this.y+this.height/2);
+};
+
+smallButton.prototype.isMouseInside = function() {
+    return mouseX > this.x &&
+           mouseX < (this.x + this.width) &&
+           mouseY > this.y &&
+           mouseY < (this.y + this.height);
+};
+
+smallButton.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClick();
+    }
+};
+
+//Play Game button specifics
+var playButton = new smallButton({
+    x: 266,
+    y: 325,
+    width: 88,
+    height: 32,
+    label: "Play!", 
+    onClick: function() {
+       drawScene2(); 
+    }
+});
+/*
+//story pt.2 scene ------------------------------------------
+var drawScene4 = function() {
+    
+    
+    playButton.draw();
+};
+
+//story pt.2 bttn
+var nextButton = new smallButton({
+    x: 266,
+    y: 325,
+    width: 88,
+    height: 32,
+    label: "Next!", 
+    onClick: function() {
+       drawScene4(); 
+    });
+    */
+//------------------------------------------------------------
+//story
+var drawScene3 = function() {
+    background(42, 116, 176);
+    fill(51, 255, 241);
+    textSize(20);
+    text("Once Upon a distant-future:", 151, 50);
+    textSize(14);
+    text("A little scientist from Earth made a rocket, and flew into space.", 200, 87);
+    fill(255, 144, 59);
+    text("The little scientist was in love with traveling at great speeds.", 200, 110);
+    fill(51, 255, 241);
+    text("On Earth, they never let him travel fast!", 200, 135);
+    text("But in space... he could go as fast as he pleased.", 200, 155);
+    
+image(getImage("space/healthheart"), 71, 235, 70, 80);
+    
+  //nextButton.draw();
+  playButton.draw();
+};
+
+//story button specifics
+var storyButton = new smallButton({
+    x: 37,
+    y: 320,
+    width: 73,
+    height: 34,
+    label: "Story!", 
+    onClick: function() {
+       drawScene3(); 
+    }
+});
+//------------------------------------------------------------
+
+// INSTRUCTION SCENE
 var drawScene1 = function(){
     currentScene = 1; 
     //important text 
@@ -179,10 +307,10 @@ var drawScene1 = function(){
     textSize(20);
     text("- Use WASD to move your ship", 96, 110, 285, 100);
      text("- Avoid hitting obstacles", 96, 149, 285, 100);
-      text("- Race against the clock!", 96, 198, 285, 100);
+      text("- Destroy Asteroids with the SpaceBar!", 96, 198, 285, 100);
       //decoration-----
       
-      //ship 
+     //ship 
     fill(255, 255, 255);
     triangle(178,352,213, 329,195,308);
     triangle(232,361,188, 318,225,338);
@@ -200,10 +328,13 @@ var drawScene1 = function(){
     rect(303, 10, 84, 73);
     drawHead2(343,42, 60);
     drawBody2(344,42,60);
+    
+   playButton.draw();
+   storyButton.draw();
 };
 
+// general button build----------------------------------------
 
-// button build
 var Button = function(config) {
     this.x = config.x || 0;
     this.y = config.y || 0;
@@ -236,7 +367,7 @@ Button.prototype.handleMouseClick = function() {
     }
 };
 
-//Start button specifics
+//Start Program button specifics -- goes to instruction scene
 var startButton = new Button({
     x: 125,
     y: 44,
@@ -246,8 +377,7 @@ var startButton = new Button({
     }
 });
 
-
-//Start Screen ----------------------
+//Start Screen -----------------------------------------------
 
 var splash = function() {
     
@@ -299,13 +429,26 @@ var splash = function() {
    ellipse(204, 188, 14, 22);
   
   //stars
- //round random for multiple stars? 
   image(getImage("cute/Star"), 100, 106, 21, 36);
-   
+  image(getImage("cute/Star"), 329, 246, 21, 36);
+  image(getImage("cute/Star"), 55, 276, 21, 36);
+  image(getImage("cute/Star"), 242, 167, 12, 16);
+  image(getImage("cute/Star"), 141, 223, 16, 25);
+  
+  //bitmojis
+    noStroke();
+    fill(255, 255, 255);
+    rect(-5, -3, 73, 60);
+    drawHead(10, -7, 50);
+    fill(255, 255, 255);
+    rect(303, 12, 84, 73);
+    drawHead2(343,42, 65);
+    drawBody2(344,42,65);
     //important stuff // text // buttons
-    textSize(43);
+    textSize(37);
     fill(105, 255, 190);
     text("Rocket",225,311);
+    text("Star",309,357);
     textSize(15);
     fill(255, 255, 255);
     text("By Anya Detonnancourt & Eason Chen", 67, 390);
@@ -315,10 +458,212 @@ var splash = function() {
      startButton.draw();
 
 };
-
+//call
 splash();
 
-mouseClicked = function() {
-startButton.handleMouseClick();
+
+//Asteroid code ----------------------------------------------
+
+//ship hitbox
+var hitboxW = 40;
+//test
+     var hitbox = function (){
+     fill(5, 65, 87);
+     ellipse(shipPosX +10, shipPosY, hitboxW,35);
+     };
+
+//asteroid object class
+var Asteroid = function(x, y) {    //object class
+    this.x = x;
+    this.y = y;
+    this.img = getImage("cute/Rock");
+    this.w = 37;
+    this.r = this.w/2; 
+    
+};
+    
+Asteroid.prototype.draw = function() {
+      // ellipse(this.x+19, this.y+25, this.w, this.w);
+    image(this.img, this.x, this.y, this.w, this.w);
+ 
 };
 
+//positioning (random x) -- New asteroid spawn
+var stroids = [];
+for (var s = 0; s < 100; s++) {  
+   stroids.push(new Asteroid(s * 3.5, random(-2100, 1)));
+   
+        
+    //var distance = dist(stroids[s].x, stroids[s].y, 40, 35);
+    
+   // println(distance);
+    
+}
+
+
+//Ship design specifics -------------------------------------------------------------
+
+var drawShip = function () {
+    strokeWeight(2);
+    fill(194, 109, 24);
+    triangle(0,-15,0,15,35,0);
+    fill(145, 9, 9);
+    rect(-5,-10,5,5);
+    rect(-5,5.0,5,5);
+};
+
+//keycode functionality ----------------
+
+keyPressed = function(){keys[keyCode]= true;};
+keyReleased = function(){delete keys[keyCode];};
+
+//key commands and speed of ship
+var Ship = function(){
+if (rotateRefresh === true){
+    bRotateNum = shipRotate;
+    bMoveX = shipPosX;
+    bMoveY = shipPosY;
+}
+if (keys[65]){ shipRotate -= rotationAmount;} //left
+if (keys[68]){ shipRotate += rotationAmount;} //right
+if (keys[87]){ if(shipSpeed < maxV){shipSpeed += acceleration;}} //up 
+if (shipSpeed > 0.5){shipSpeed-= 0.25;}
+if (keys[83]){ if(shipSpeed > -maxV){shipSpeed -= acceleration;}}//down
+if (shipSpeed < -0.5){shipSpeed+= 0.25;}
+
+//shooting command (spacebar)
+if (keys[32]){shooting = true;} else{shooting = false;}
+var bPosX = bMoveX + shoot + 10;
+var bPosY = bMoveY + shoot;
+
+//bullet --------------------------------
+/*
+var bullet = function(){
+this.age = 0;
+this.alive = false;
+this.position = new PVector(-10000, height/2);
+this.velocity = new PVector(0, 0);
+};
+bullet.spawn = function(p,v){
+this.age = 0;
+this.alive = true;
+this.position = p;
+this.velocity = v;
+};
+*/
+
+//movement -----------------------------
+
+shipRotate = shipRotate % 360;
+shipPosX += shipSpeed * cos(shipRotate); 
+shipPosY += shipSpeed * sin(shipRotate);
+pushMatrix();
+translate(shipPosX,shipPosY);
+rotate(shipRotate);
+drawShip();
+rotateRefresh = true;
+popMatrix();
+
+//shooting -----------------------------
+    
+if (shooting === true){
+  
+pushMatrix();
+translate(bMoveX, bMoveY);
+rotate(bRotateNum);
+line(shoot,0,shoot+15,0);
+shoot += 80;
+popMatrix();
+}else{
+    shoot = 0;
+    }
+
+//Wall (constraints)--------------------
+if (shipPosX>450){
+shipPosX = -50;
+}
+if (shipPosX<-50){
+shipPosX = 450;
+}
+if (shipPosY<-50){
+shipPosY = 450;
+}
+if (shipPosY>450){
+shipPosY = -50;
+}
+};
+
+//-----------------------End of ship funct.-----------------------------------------
+
+
+var drawScene5 = function() {
+      background(255, 222, 229);
+      fill(30, 80, 230);
+      textSize(30);
+      textAlign(LEFT, CENTER);
+      text("GAME OVER", 100, 200);
+      textSize(20);
+      text("Your ship was destroyed", 100, 250);
+    
+};
+     
+//draw function ------------------------------------------------------
+
+var draw = function() {
+     if (currentScene === 2) {
+     
+     background(33, 59, 71);
+     noStroke(); 
+     
+         //collision test----------
+         
+for (var i = 0; i < stroids.length; i++) {
+    var dx = (stroids[i].x + stroids[i].r) - (shipPosX + hitboxW/2);
+    var dy = (stroids[i].y + stroids[i].r) - (shipPosY + hitboxW/2);
+     var distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < stroids[i].r + hitboxW/2) {
+       collision = true;
+    }
+     else {
+            if (stroids[99].y > 1000) {
+                
+                background(0, 148, 123);
+                fill(255, 242, 0);
+                text("You Survived! Good Flying!", 200, 300);
+                
+            }
+        }
+}
+
+     //test-------------------------
+     
+     hitbox();
+     Ship();
+
+     //asteroids movement/animation
+
+     for (var i = 0; i < stroids.length; i++) {
+        
+      stroids[i].draw();
+
+      stroids[i].y += 0.8; //move accross y-axis speed
+      
+// collision end screen       
+     if (collision === true) {
+      
+   drawScene5();
+     }
+     }
+     
+     }
+
+};
+
+
+// end functional stuff------------------------------
+mouseClicked = function() {
+startButton.handleMouseClick();
+playButton.handleMouseClick();
+storyButton.handleMouseClick();
+};
