@@ -486,6 +486,11 @@ Asteroid.prototype.draw = function() {
     fill(74, 66, 66);
     ellipse(this.x, this.y, 50, 39);
 };
+Asteroid.prototype.getHit = function() {
+    this.alive = false;
+    this.x = -10000;
+    this.y = -10000;
+};
 
 //positioning (random x) -- New asteroid spawn
 var stroids = [];
