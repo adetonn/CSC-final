@@ -483,9 +483,8 @@ var Asteroid = function(x, y) {    //object class
 };
     
 Asteroid.prototype.draw = function() {
-      // ellipse(this.x+19, this.y+25, this.w, this.w);
-    image(this.img, this.x, this.y, this.w, this.w);
- 
+    fill(74, 66, 66);
+    ellipse(this.x, this.y, 50, 39);
 };
 
 //positioning (random x) -- New asteroid spawn
