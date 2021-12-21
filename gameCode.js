@@ -1,13 +1,12 @@
-const canvas = document.getElementById('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
 
-//globals (general)
+//globals (general)----------------------------
+
+//MISC.
 var currentScene = 0;
 var stillPlaying = true; 
 var collision = false;
 
-//movement variables
+ //movement variables
 var shipRotate = 0;
 var shipSpeed = 0;
 var acceleration = 0.5;
@@ -16,16 +15,17 @@ var shipX = 100;
 var shipY = 100;
 var keys = [];
 var maxV = 6;
-var shipPosX = 100;
-var shipPosY = 100;
+var shipPosX = 200;
+var shipPosY = 300;
 
-//gun variables
+//bullet variables
 var shooting = false;
 var shoot = 0;
 var bMoveX = 0;
 var bMoveY = 0;
 var bRotateNum = 0;
 var rotateRefresh = false;
+
 
 //bitmojis 
 var drawHead = function (bitX, bitY, bitHeight)
@@ -186,20 +186,26 @@ line(x+(bitheight/150*12),y+(bitheight/150*113),x+(bitheight/150*32),y+(bitheigh
 line(x+(bitheight/150*11),y+(bitheight/150*81),x+(bitheight/150*32),y+(bitheight/150*80));
 };
 
+
+//scene directory ------------------------------------------------
+
+
 // 0 = splash , 1 = how-to , 2 = game , 3 = story.1 , 4 = story.2 , 5 = game over.
+
 
 //----------------------------------------------------------------
 
 
-// GAME SCENE CALL
+// GAME SCENE CALL--------
 var drawScene2 = function () {
-    //game scene
+    //game scened
     currentScene = 2; 
 };
 
 //----------------------------------------------------------------
 
-//small button (starts game)
+
+//small button general Build (starts game)
 var smallButton = function(config) {
     this.x = config.x || 0;
     this.y = config.y || 0;
@@ -243,27 +249,9 @@ var playButton = new smallButton({
        drawScene2(); 
     }
 });
-/*
-//story pt.2 scene ------------------------------------------
-var drawScene4 = function() {
-    
-    
-    playButton.draw();
-};
 
-//story pt.2 bttn
-var nextButton = new smallButton({
-    x: 266,
-    y: 325,
-    width: 88,
-    height: 32,
-    label: "Next!", 
-    onClick: function() {
-       drawScene4(); 
-    });
-    */
 //------------------------------------------------------------
-//story
+//story scene
 var drawScene3 = function() {
     background(42, 116, 176);
     fill(51, 255, 241);
@@ -307,10 +295,11 @@ var drawScene1 = function(){
     textSize(20);
     text("- Use WASD to move your ship", 96, 110, 285, 100);
      text("- Avoid hitting obstacles", 96, 149, 285, 100);
-      text("- Destroy Asteroids with the SpaceBar!", 96, 198, 285, 100);
+     textSize(16);
+      text("- Destroy Asteroids by holding SpaceBar & aiming with your mouse with a sweeping motion!", 96, 198, 285, 100);
       //decoration-----
       
-     //ship 
+      //ship 
     fill(255, 255, 255);
     triangle(178,352,213, 329,195,308);
     triangle(232,361,188, 318,225,338);
@@ -333,7 +322,8 @@ var drawScene1 = function(){
    storyButton.draw();
 };
 
-// general button build----------------------------------------
+//general button build----------------------------------------
+
 
 var Button = function(config) {
     this.x = config.x || 0;
@@ -453,6 +443,7 @@ var splash = function() {
     fill(255, 255, 255);
     text("By Anya Detonnancourt & Eason Chen", 67, 390);
     fill(255, 255, 255);
+    stroke(0, 0, 0);
     
     //button draw
      startButton.draw();
@@ -461,31 +452,44 @@ var splash = function() {
 //call
 splash();
 
+//------------------------------------------------------------
+
+// GAME ship draw
+var drawShip = function(){ 
+strokeWeight(2);
+fill(194, 194, 194);
+fill(252, 154, 73);
+triangle(0,-15,0,15,35,0);
+fill(255, 240, 240);
+rect(-5,-10,5,5);
+rect(-5,5.0,5,5);
+};
 
 //Asteroid code ----------------------------------------------
 
-//ship hitbox
-var hitboxW = 40;
-//test
+//ship hitbox for collison detection
+var hitboxW = 30;
+
      var hitbox = function (){
      fill(5, 65, 87);
-     ellipse(shipPosX +10, shipPosY, hitboxW,35);
+     noStroke();
+     ellipse(shipPosX +10, shipPosY, hitboxW,25);   //follows ship movement
+     stroke(0, 0, 0);
      };
 
-//asteroid object class
+//asteroid object class-----------------
 var Asteroid = function(x, y) {    //object class
     this.x = x;
     this.y = y;
     this.img = getImage("cute/Rock");
     this.w = 37;
-    this.r = this.w/2; 
-    
+    this.r = this.w/2;          //radius
 };
     
 Asteroid.prototype.draw = function() {
-      // ellipse(this.x+19, this.y+25, this.w, this.w);
-    image(this.img, this.x, this.y, this.w, this.w);
- 
+      fill(74, 66, 66);
+    ellipse(this.x, this.y, 50, 39);
+   
 };
 
 //positioning (random x) -- New asteroid spawn
@@ -493,42 +497,27 @@ var stroids = [];
 for (var s = 0; s < 100; s++) {  
    stroids.push(new Asteroid(s * 3.5, random(-2100, 1)));
    
-        
-    //var distance = dist(stroids[s].x, stroids[s].y, 40, 35);
-    
-   // println(distance);
-    
 }
 
+//Ship functional specifics -------------------------------------------------------------
 
-//Ship design specifics -------------------------------------------------------------
-
-var drawShip = function () {
-    strokeWeight(2);
-    fill(194, 109, 24);
-    triangle(0,-15,0,15,35,0);
-    fill(145, 9, 9);
-    rect(-5,-10,5,5);
-    rect(-5,5.0,5,5);
-};
-
-//keycode functionality ----------------
-
-keyPressed = function(){keys[keyCode]= true;};
-keyReleased = function(){delete keys[keyCode];};
+//keycode specifics-------- 
+keyPressed = function(){keys[keyCode]= true;};      //accept key press
+keyReleased = function(){delete keys[keyCode];};    //removes property/previous input
 
 //key commands and speed of ship
 var Ship = function(){
 if (rotateRefresh === true){
-    bRotateNum = shipRotate;
-    bMoveX = shipPosX;
+    bRotateNum = shipRotate;    //bullet angle same as ship angle
+    bMoveX = shipPosX;          //bullet spawns from ship's coordinates
     bMoveY = shipPosY;
 }
-if (keys[65]){ shipRotate -= rotationAmount;} //left
-if (keys[68]){ shipRotate += rotationAmount;} //right
-if (keys[87]){ if(shipSpeed < maxV){shipSpeed += acceleration;}} //up 
+//ship flight keycodes WASD
+if (keys[65]){ shipRotate -= rotationAmount;} //left (A)
+if (keys[68]){ shipRotate += rotationAmount;} //right (D)
+if (keys[87]){ if(shipSpeed < maxV){shipSpeed += acceleration;}} //up (W)
 if (shipSpeed > 0.5){shipSpeed-= 0.25;}
-if (keys[83]){ if(shipSpeed > -maxV){shipSpeed -= acceleration;}}//down
+if (keys[83]){ if(shipSpeed > -maxV){shipSpeed -= acceleration;}}//down (S)
 if (shipSpeed < -0.5){shipSpeed+= 0.25;}
 
 //shooting command (spacebar)
@@ -536,59 +525,64 @@ if (keys[32]){shooting = true;} else{shooting = false;}
 var bPosX = bMoveX + shoot + 10;
 var bPosY = bMoveY + shoot;
 
-//bullet --------------------------------
-/*
-var bullet = function(){
-this.age = 0;
-this.alive = false;
-this.position = new PVector(-10000, height/2);
-this.velocity = new PVector(0, 0);
-};
-bullet.spawn = function(p,v){
-this.age = 0;
-this.alive = true;
-this.position = p;
-this.velocity = v;
-};
-*/
-
-//movement -----------------------------
-
+//movement-----------------------------
 shipRotate = shipRotate % 360;
 shipPosX += shipSpeed * cos(shipRotate); 
 shipPosY += shipSpeed * sin(shipRotate);
-pushMatrix();
+pushMatrix();                               //puts into beginning of array
 translate(shipPosX,shipPosY);
 rotate(shipRotate);
 drawShip();
 rotateRefresh = true;
-popMatrix();
-//bullet object--------------------------
+popMatrix();                            //puts at end of array
+
+//bullet object
 var Bullet = function(){
 this.x = shoot;
 this.y = 0;
 this.width = 12;
 this.height = 3;
-ellipse(this.x, this.y, this.width, this.height);
-};    
-//shooting -----------------------------
-    
-if (shooting === true){
-  
-pushMatrix();
-translate(bMoveX, bMoveY);
-rotate(bRotateNum);
-var bul = [];
-for (var j = 0; j<100; j++){
-bul.push( new Bullet(this.x, this.y, this.width, this.height));
-}
-shoot += 80;
-popMatrix();
-}else{
-    shoot = 0;
-    }
+ellipse(this.x, this.y, this.width, this.height);   //draw
+};
 
-//Wall (constraints)--------------------
+//shooting Boolean-----------------------------
+if (shooting === true){
+    //pushed bullet into array
+    pushMatrix();
+    translate(bMoveX, bMoveY);
+    rotate(bRotateNum);
+    var bul = [];
+    for (var j = 0; j<100; j++){
+    bul.push( new Bullet(this.x, this.y, this.width, this.height));
+}
+
+shoot += 80;
+popMatrix();    //takes bullet out of array
+
+}
+else {
+        shoot = 0;
+     }
+        
+    var bul = [];
+for (var j = 0; j<100; j++){
+    bul.push( new Bullet(this.x, this.y, this.width, this.height));
+}
+
+//bullet collision with asteroids------------------
+
+for (var i = 0; i < stroids.length; i++) {
+    
+     //if mouse is near asteroid coordinates then asteroids are "destroyed"
+        if (mouseX <= stroids[i].x+-5 && mouseY <= stroids[i].y+-10 && shooting === true) {
+         
+         stroids[i].x = 500;  
+         
+        }
+
+}
+
+//Wall Consraints----------------------------------
 if (shipPosX>450){
 shipPosX = -50;
 }
@@ -605,7 +599,7 @@ shipPosY = -50;
 
 //-----------------------End of ship funct.-----------------------------------------
 
-
+//GAME OVER scene
 var drawScene5 = function() {
       background(255, 222, 229);
       fill(30, 80, 230);
@@ -616,25 +610,33 @@ var drawScene5 = function() {
       text("Your ship was destroyed", 100, 250);
     
 };
-     
-//draw function ------------------------------------------------------
+
+//------------------DRAW / ANIMATION------------------------------------------------
 
 var draw = function() {
      if (currentScene === 2) {
      
-     background(33, 59, 71);
-     noStroke(); 
+     background(37, 83, 133);
+     hitbox();
+     Ship();
      
-         //collision test----------
-         
+
+//collision-----------------------------------------
+
+    //distance between both object's x's and y's
 for (var i = 0; i < stroids.length; i++) {
+    
     var dx = (stroids[i].x + stroids[i].r) - (shipPosX + hitboxW/2);
     var dy = (stroids[i].y + stroids[i].r) - (shipPosY + hitboxW/2);
-     var distance = Math.sqrt(dx * dx + dy * dy);
     
+    //distances multiplied and added together
+     var distance = Math.sqrt(dx * dx + dy * dy);
+     
+    //if object inside other object's radius --> collision
     if (distance < stroids[i].r + hitboxW/2) {
        collision = true;
     }
+    //if no collision --> WIN scene
      else {
             if (stroids[99].y > 1000) {
                 
@@ -646,34 +648,29 @@ for (var i = 0; i < stroids.length; i++) {
         }
 }
 
-     //test-------------------------
-     
-     hitbox();
-     Ship();
-
-     //asteroids movement/animation
-
-     for (var i = 0; i < stroids.length; i++) {
+//asteroids draw----------------------------------
+for (var i = 0; i < stroids.length; i++) {
         
       stroids[i].draw();
 
-      stroids[i].y += 0.8; //move accross y-axis speed
-      
-// collision end screen       
+
+      stroids[i].y += 0.8;   //y-axis speed
+        
+//collision end screen----------------------------
      if (collision === true) {
-      
-   drawScene5();
-     }
-     }
-     
+         
+                    drawScene5();
+              } 
+          }
      }
 
 };
 
 
-// end functional stuff------------------------------
+// Makes all buttons functional:
 mouseClicked = function() {
 startButton.handleMouseClick();
 playButton.handleMouseClick();
 storyButton.handleMouseClick();
 };
+
