@@ -563,7 +563,14 @@ rotate(shipRotate);
 drawShip();
 rotateRefresh = true;
 popMatrix();
-
+//bullet object--------------------------
+var Bullet = function(){
+this.x = shoot;
+this.y = 0;
+this.width = 12;
+this.height = 3;
+ellipse(this.x, this.y, this.width, this.height);
+};    
 //shooting -----------------------------
     
 if (shooting === true){
@@ -571,7 +578,10 @@ if (shooting === true){
 pushMatrix();
 translate(bMoveX, bMoveY);
 rotate(bRotateNum);
-line(shoot,0,shoot+15,0);
+var bul = [];
+for (var j = 0; j<100; j++){
+bul.push( new Bullet(this.x, this.y, this.width, this.height));
+}
 shoot += 80;
 popMatrix();
 }else{
